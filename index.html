@@ -1122,7 +1122,7 @@ Rules:
             <div class="tech-tags">
               <span class="tech-tag">Python</span>
               <span class="tech-tag">Streamlit</span>
-              <span class="tech-tag">Gemini</span>
+              <span class="tech-tag">Groq AI</span>
             </div>
           </div>
         </div>
@@ -1455,6 +1455,23 @@ Rules:
   const shareBtn = document.getElementById('shareBtn');
   const shareIcon = shareBtn.querySelector('.icon-share');
   const shareCheckIcon = shareBtn.querySelector('.icon-check');
+
+  function showShareConfirmation(){
+    shareIcon.style.display = 'none';
+    shareCheckIcon.style.display = 'block';
+    setTimeout(() => {
+      shareIcon.style.display = 'block';
+      shareCheckIcon.style.display = 'none';
+    }, 1800);
+  }
+
+  async function copyLinkFallback(){
+    try{
+      await navigator.clipboard.writeText(window.location.href);
+      showShareConfirmation();
+    } catch(e){ /* clipboard unavailable, nothing more we can do */ }
+  }
+
   shareBtn.addEventListener('click', async () => {
     const shareData = {
       title: document.title,
@@ -1462,17 +1479,15 @@ Rules:
       url: window.location.href
     };
     if(navigator.share){
-      try{ await navigator.share(shareData); } catch(e){ /* user cancelled, nothing to do */ }
-    } else {
       try{
-        await navigator.clipboard.writeText(window.location.href);
-        shareIcon.style.display = 'none';
-        shareCheckIcon.style.display = 'block';
-        setTimeout(() => {
-          shareIcon.style.display = 'block';
-          shareCheckIcon.style.display = 'none';
-        }, 1800);
-      } catch(e){ /* clipboard unavailable */ }
+        await navigator.share(shareData);
+      } catch(e){
+        if(e.name !== 'AbortError'){
+          await copyLinkFallback();
+        }
+      }
+    } else {
+      await copyLinkFallback();
     }
   });
 
